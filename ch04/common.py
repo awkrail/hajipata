@@ -21,7 +21,7 @@ def load_iris():
   
   return setosa, versicolour, virginica
 
-def plot(flower, marker, color):
+def plot_scatter(flower, marker, color):
   petal_length = np.array([f[0] for f in flower], dtype=np.float32)
   petal_width = np.array([f[1] for f in flower], dtype=np.float32)
   plt.scatter(petal_length, petal_width, marker=marker, color=color)

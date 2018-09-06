@@ -1,24 +1,12 @@
-# 標準化
-# データはirisデータセット
-from common import load_iris, plot_scatter
+# 無相関化
+# データはアイリスデータセット
+from common import load_iris
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot(setosa, versicolour, virginica, path):
-  # before_normalization
-  plt.clf()
-  plot_scatter(setosa, marker='.', color='red')
-  plot_scatter(versicolour, marker='o', color='blue')
-  plot_scatter(virginica, marker='^', color='green')
-  plt.title('あやめデータ')
-  plt.xlabel('花弁の長さ')
-  plt.ylabel('花弁の幅')
-  plt.savefig(path)
-
 if __name__ == "__main__":
   setosa, versicolour, virginica = load_iris()
-  plot(setosa, versicolour, virginica, "results/original.png")
-
+  
   setosa_N = len(setosa)
   versicolour_N = len(versicolour)
   virginica_N = len(virginica)
@@ -33,10 +21,19 @@ if __name__ == "__main__":
   sigma_lw = (1/N) * np.sum((length - mu_l)*(width - mu_w))
   sigma_ww = (1/N) * np.sum((width - mu_w)**2)
 
-  # normalization
-  n_length = (length - mu_l) / np.sqrt(sigma_ll)
-  n_width = (width - mu_w) / np.sqrt(sigma_ww)
+  sigma = np.array([[sigma_ll, sigma_lw], [sigma_lw, sigma_ww]], dtype=np.float32)
+  result = np.linalg.eig(sigma)
+  for i in range(len(result[1])):
+    result[1][i] = result[1][i] / np.linalg.norm(result[1][i])
+  import ipdb; ipdb.set_trace()
+  lambdas, S_t = result[0], result[1].T
+  y = all_data @ S_t
 
+  # divide y with length, and width
+  n_length = y[:, 0]
+  n_width = y[:, 1]
+
+  # plot
   setosa = np.concatenate((n_length[:setosa_N], n_width[:setosa_N])).reshape(setosa_N, 2)
   versicolour = np.concatenate((n_length[setosa_N:setosa_N+versicolour_N], n_width[setosa_N:setosa_N+versicolour_N])).reshape(versicolour_N, 2)
   virginica = np.concatenate((n_length[setosa_N+versicolour_N:], n_width[setosa_N+versicolour_N:])).reshape(virginica_N, 2)
@@ -49,4 +46,4 @@ if __name__ == "__main__":
   plt.title('あやめデータ')
   plt.xlabel('花弁の長さ')
   plt.ylabel('花弁の幅')
-  plt.savefig("results/normalized.png")
+  plt.savefig("results/decorrelated.png")
