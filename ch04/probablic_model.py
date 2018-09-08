@@ -42,7 +42,6 @@ if __name__ == "__main__":
 
   # TODO : 等高線を描いてグラフをplotする
   def f(X, Y):
-    x = np.array([X, Y], dtype=np.float32)
     import ipdb; ipdb.set_trace()
     return np.dot(np.dot(x.T, S), x) + 2*np.dot(c_t, x) + F
   
