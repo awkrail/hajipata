@@ -13,18 +13,17 @@ bias = np.ones((100, 1))
 X = X[:100, 2:]
 t = t[:100]
 epoch = 1000
-lr = 1e-15
 # ラベルは {-1, 1}にしておく
 for i in range(100):
   if t[i] == 0:
     t[i] = -1
-
 X_train, X_test, t_train, t_test = train_test_split(X, t, test_size=0.3, random_state=42)
-# 今回は未定乗数のパラメータaは0とする
+
+
+# 勾配法でaを最適な求める : 今回は問題がMAXになっているので山登り法
 N = X_train.shape[0]
 a = np.zeros(N)
 ones = np.ones(N)
-
 dot_x = np.dot(X_train, X_train.T)
 ti_tj = np.dot(t_train.reshape(N, 1), t_train.reshape(1, N))
 H = dot_x * ti_tj
@@ -32,27 +31,31 @@ H = dot_x * ti_tj
 def L(a):
   return np.dot(a, ones) - np.dot(a.T, np.dot(H, a))/2.
 
-def dL(a):
-  return ones - np.dot(H, a)
+beta = 1.0
+a_lr = 0.0001
+beta_lr = 0.1
 
-# 勾配法でaを最適な求める : 今回は問題がMAXになっているので山登り法
-for i in range(epoch):
-  a = a + lr * dL(a)
-  print("epoch {} loss : {}".format(i, L(a)))
+for e in range(epoch):
+  for i in range(N):
+    delta = 1 - (t_train[i] * X_train[i]).dot(a * t_train * X_train.T).sum() - beta * t_train[i] * a.dot(t_train)
+    a[i] += a_lr * delta
+  for i in range(N):
+    # betaを微分して最適化
+    beta += beta_lr * a.dot(t_train) ** 2 / 2
+  print("epoch {} L(a) : {}".format(e, L(a)))
 
 # パラメータwを計算する
-w_0, w_1 = 0, 0
-W = np.array([w_0, w_1])
-for i in range(N):
-  W = W + a[i]*t_train[i]*X_train[i]
+index = a > 0
+W = (a * t_train).T.dot(X_train)
+b = (t_train[index] - X_train[index].dot(W)).mean()
 
-# テストデータで性能を確認する
+# テストデータで汎化能力を測定
 test_size = X_test.shape[0]
 acc = 0
 for idx in range(test_size):
   x = X_test[idx]
   answer = t_test[idx]
-  dot_wx = np.dot(W, x)
+  dot_wx = np.dot(W, x) + b
   if dot_wx >= 0:
     predict = 1
   else:
@@ -63,14 +66,10 @@ for idx in range(test_size):
 
 print("accuracy : ", acc / test_size)
 
-# テストデータでの結果をプロットしてみる
-setosa = X_test[t_test == -1]
-versicolour = X_test[t_test == 1]
-a = (-1) * (W[0] / W[1])
-# b = (-1) * (W[0] / W[2])
-b = (1/t_train[0]) - np.dot(W, x)
+setosa = X_train[t_train == -1]
+versicolour = X_train[t_train == 1]
 x = np.arange(0, 6)
-y = a * x + b
+y = -(W[0] * x + b) / W[1]
 
 plt.clf()
 plt.scatter(setosa[:, 0], setosa[:, 1], marker='.', color='red')
@@ -79,4 +78,4 @@ plt.plot(x, y)
 plt.title('あやめデータ')
 plt.xlabel('花弁の長さ')
 plt.ylabel('花弁の幅')
-plt.savefig("results/linear_svm.png")
+plt.savefig("results/linear_svm_saidainyu.png")
