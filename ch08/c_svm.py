@@ -168,7 +168,6 @@ class C_SVM:
     return 0
   
   def train(self):
-    threshold = 0
     numChanged = 0
     examineAll = 1
 
