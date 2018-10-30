@@ -27,21 +27,13 @@ N = data.shape[0]
 
 var = (1/N) * np.dot(X.T, X)
 lambdas, vectors = np.linalg.eig(var)
-# TODO : 寄与順にソートする, ベクトルを描写する
-first = vectors[:, 0]
-second = vectors[:, 1]
+if lambdas[0] > lambdas[1]:
+  first, second = vectors[:, 0], vectors[:, 1]
+else:
+  first, second = vectors[:, 1], vectors[:, 0]
 
-print(np.dot(first, second))
-
-"""
-x = np.arange(-1, 4)
-y = (first[1] / first[0])*x
-plt.plot(x, y, color="green")
-
-x = np.arange(-1, 5)
-y = (second[1] / second[0])*x
-plt.plot(x, y, color="red")
-
+# なぜか二つのベクトルが直交しているようには見えない..
+plt.quiver(mean[0], mean[1], first[0], first[1], angles='xy',scale_units='xy', scale=1)
+plt.quiver(mean[0], mean[1], second[0], second[1], angles='xy',scale_units='xy', scale=1)
 plt.scatter(data[:, 0], data[:, 1])
 plt.show()
-"""
